@@ -1,4 +1,4 @@
-using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
 namespace _3d {
@@ -6,15 +6,15 @@ namespace _3d {
         
         Shader shader;
         float[] vertices = {
-           -1.5f,  1.5f,  0,   1, 1, 1,
+//          X      Y      Z    R  G  B
+           -1.5f,  1.5f,  0,   1, 0, 0,
             1.5f,  1.5f,  0,   0, 1, 0,
             1.5f, -1.5f,  0,   0, 0, 1,
-           -1.5f, -1.5f,  0,   1, 0, 1,
-           
+           -1.5f, -1.5f,  0,   1, 1, 0,
         };
         uint[] indices = {
-            1, 0, 2,
-            2, 3, 1,
+            0, 1, 2,
+            0, 2, 3
         };
         int ibo, vbo, vao;
         Camera camera;
@@ -39,8 +39,6 @@ namespace _3d {
 
             int positionAttribLocation = GL.GetAttribLocation(shader.program, "vertexPosition");
             int colorAttribLocation = GL.GetAttribLocation(shader.program, "vertexColor");
-            GL.EnableVertexAttribArray(positionAttribLocation);
-            GL.EnableVertexAttribArray(colorAttribLocation);
 
             GL.VertexAttribPointer(
                 positionAttribLocation,
@@ -58,6 +56,8 @@ namespace _3d {
                 6 * sizeof(float),
                 3 * sizeof(float)
             );
+            GL.EnableVertexAttribArray(positionAttribLocation);
+            GL.EnableVertexAttribArray(colorAttribLocation);
             shader.UseShader();
 
             int worldUniformLocation = GL.GetUniformLocation(shader.program, "mWorld"),
@@ -69,8 +69,8 @@ namespace _3d {
                     projMatrix =  new Matrix4();
 
             worldMatrix = Matrix4.Identity;
-            viewMatrix = Matrix4.LookAt(camera.position, camera.position + camera.lookEye, camera.up);
-            projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45), 1000/720, 0.1f, 2000f);
+            viewMatrix = Matrix4.LookAt(camera.position, camera.position+camera.lookEye, camera.up);
+            projMatrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45), 1000/720, 0.01f, 2000f);
 
             GL.UniformMatrix4(worldUniformLocation, false, ref worldMatrix);
             GL.UniformMatrix4(viewUniformLocation, false, ref viewMatrix);
@@ -82,10 +82,11 @@ namespace _3d {
             GL.Enable(EnableCap.DepthTest);
             GL.ClearColor(0.0f,0.0f,0.0f,1.0f);
             GL.Clear(ClearBufferMask.DepthBufferBit | ClearBufferMask.ColorBufferBit);
+            
             try {
                 shader.UseShader();
                 GL.BindVertexArray(vao);
-                GL.DrawElements(PrimitiveType.LineStrip, indices.Length, DrawElementsType.UnsignedShort, 0);
+                GL.DrawElements(PrimitiveType.Triangles, 6, DrawElementsType.UnsignedInt, 0);
             }
             catch(System.Exception e) {System.Console.WriteLine(e.Message);}
         }
